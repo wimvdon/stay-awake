@@ -9,7 +9,7 @@ A tiny Windows app that keeps your PC awake, for a set time or until you stop it
   - *Turn off after normal time-out* (default): the screen follows your Windows power settings, the PC stays awake
   - *Turn off now*: the screen turns off right after you press Start, the PC stays awake
   - *Keep screen on*: both the PC and the screen stay on
-- Tray icon (grey = idle, colour = active) with Show / Start / Stop / Exit
+- Tray icon (grey = idle, green = active) with Show / Start / Stop / Exit
 - Your power settings aren't changed. The app only asks Windows to stay awake while it's active, and that ends when you stop it or exit.
 
 ## Build

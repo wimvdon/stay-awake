@@ -1,9 +1,8 @@
-// Stay awake - keeps Windows awake for a set or unlimited time, with the screen kept on or turned off.
+// Stay Awake - keeps Windows awake for a set or unlimited time, with the screen kept on or turned off.
 // Build: build.cmd  (uses the C# compiler that ships with Windows / .NET Framework 4.x)
 
 using System;
 using System.Drawing;
-using System.Drawing.Drawing2D;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -25,8 +24,6 @@ namespace StayAwake
         [DllImport("user32.dll")]
         public static extern IntPtr SendMessage(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
-        [DllImport("user32.dll")]
-        public static extern bool DestroyIcon(IntPtr handle);
 
         public const uint WM_SYSCOMMAND = 0x0112;
         public const int SC_MONITORPOWER = 0xF170;
@@ -49,6 +46,8 @@ namespace StayAwake
         private readonly ToolStripMenuItem trayStartStop;
         private readonly Icon iconIdle;
         private readonly Icon iconActive;
+        private readonly Icon trayIdle;
+        private readonly Icon trayActive;
 
         private bool active;
         private DateTime? endTime;
@@ -56,15 +55,17 @@ namespace StayAwake
 
         public MainForm()
         {
-            Text = "Stay awake";
+            Text = "Stay Awake";
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             StartPosition = FormStartPosition.CenterScreen;
             ClientSize = new Size(340, 326);
             Font = new Font("Segoe UI", 9.5f);
 
-            iconIdle = MakeIcon(Color.FromArgb(120, 120, 120));
-            iconActive = MakeIcon(Color.FromArgb(0, 150, 90));
+            iconIdle = LoadIcon("icon-idle.ico", Size.Empty);
+            iconActive = LoadIcon("icon.ico", Size.Empty);
+            trayIdle = LoadIcon("icon-idle.ico", SystemInformation.SmallIconSize);
+            trayActive = LoadIcon("icon.ico", SystemInformation.SmallIconSize);
             Icon = iconIdle;
 
             // --- Duration ---
@@ -103,7 +104,7 @@ namespace StayAwake
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Exit", null, delegate { reallyExit = true; Close(); }));
 
-            tray = new NotifyIcon { Icon = iconIdle, Text = "Stay awake - idle", Visible = true, ContextMenuStrip = menu };
+            tray = new NotifyIcon { Icon = trayIdle, Text = "Stay Awake - idle", Visible = true, ContextMenuStrip = menu };
             tray.DoubleClick += delegate { ShowFromTray(); };
 
             Resize += delegate { if (WindowState == FormWindowState.Minimized) Hide(); };
@@ -118,7 +119,7 @@ namespace StayAwake
                 var span = new TimeSpan((int)nudHours.Value, (int)nudMinutes.Value, 0);
                 if (span.TotalMinutes < 1)
                 {
-                    MessageBox.Show(this, "Please choose a duration of at least 1 minute.", "Stay awake",
+                    MessageBox.Show(this, "Please choose a duration of at least 1 minute.", "Stay Awake",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
@@ -159,7 +160,7 @@ namespace StayAwake
             if (endTime.HasValue && DateTime.Now >= endTime.Value)
             {
                 StopAwake();
-                tray.ShowBalloonTip(3000, "Stay awake", "Time is up - normal power settings restored.", ToolTipIcon.Info);
+                tray.ShowBalloonTip(3000, "Stay Awake", "Time is up - normal power settings restored.", ToolTipIcon.Info);
                 return;
             }
             ApplyExecutionState();
@@ -173,7 +174,8 @@ namespace StayAwake
             rbUnlimited.Enabled = rbDuration.Enabled = !active;
             nudHours.Enabled = nudMinutes.Enabled = rbDuration.Checked && !active;
             rbScreenTimeout.Enabled = rbScreenOffNow.Enabled = rbScreenOn.Enabled = !active;
-            Icon = tray.Icon = active ? iconActive : iconIdle;
+            Icon = active ? iconActive : iconIdle;
+            tray.Icon = active ? trayActive : trayIdle;
             UpdateStatusText();
         }
 
@@ -206,8 +208,8 @@ namespace StayAwake
             lblStatus.Text = text;
 
             string tip = active
-                ? (endTime.HasValue ? "Stay awake - active until " + endTime.Value.ToString("t") : "Stay awake - active (unlimited)")
-                : "Stay awake - idle";
+                ? (endTime.HasValue ? "Stay Awake - active until " + endTime.Value.ToString("t") : "Stay Awake - active (unlimited)")
+                : "Stay Awake - idle";
             tray.Text = tip.Length > 63 ? tip.Substring(0, 63) : tip;
         }
 
@@ -238,7 +240,7 @@ namespace StayAwake
             {
                 e.Cancel = true;
                 Hide();
-                tray.ShowBalloonTip(2500, "Stay awake", "Still running in the tray. Right-click the icon to exit.", ToolTipIcon.Info);
+                tray.ShowBalloonTip(2500, "Stay Awake", "Still running in the tray. Right-click the icon to exit.", ToolTipIcon.Info);
                 return;
             }
             Native.SetThreadExecutionState(Native.ExecutionState.Continuous);
@@ -247,23 +249,11 @@ namespace StayAwake
             base.OnFormClosing(e);
         }
 
-        private static Icon MakeIcon(Color color)
+        // Icons are embedded resources, generated by make-icon.ps1.
+        private static Icon LoadIcon(string name, Size size)
         {
-            using (var bmp = new Bitmap(32, 32))
-            {
-                using (var g = Graphics.FromImage(bmp))
-                {
-                    g.SmoothingMode = SmoothingMode.AntiAlias;
-                    g.Clear(Color.Transparent);
-                    using (var b = new SolidBrush(color)) g.FillEllipse(b, 1, 1, 30, 30);
-                    using (var w = new SolidBrush(Color.White)) g.FillEllipse(w, 6, 10, 20, 12);
-                    using (var p = new SolidBrush(color)) g.FillEllipse(p, 11, 11, 10, 10);
-                }
-                IntPtr h = bmp.GetHicon();
-                var icon = (Icon)Icon.FromHandle(h).Clone();
-                Native.DestroyIcon(h);
-                return icon;
-            }
+            using (var stream = typeof(MainForm).Assembly.GetManifestResourceStream(name))
+                return size.IsEmpty ? new Icon(stream) : new Icon(stream, size);
         }
     }
 

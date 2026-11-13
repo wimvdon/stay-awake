@@ -1,4 +1,4 @@
-// Stay Awake - keeps Windows awake for a set or unlimited time, with the screen kept on or turned off.
+// Stay Awake: keeps Windows awake for a set or unlimited time, with the screen kept on or turned off.
 // Build: build.cmd  (uses the C# compiler that ships with Windows / .NET Framework 4.x)
 
 using System;
@@ -68,25 +68,25 @@ namespace StayAwake
             trayActive = LoadIcon("icon.ico", SystemInformation.SmallIconSize);
             Icon = iconIdle;
 
-            // --- Duration ---
+            // Duration
             var grpTime = new GroupBox { Text = "Keep awake", Location = new Point(12, 10), Size = new Size(316, 92) };
             rbUnlimited = new RadioButton { Text = "Unlimited (until stopped)", Location = new Point(12, 22), AutoSize = true, Checked = true };
             rbDuration = new RadioButton { Text = "For", Location = new Point(12, 54), AutoSize = true };
-            nudHours = new NumericUpDown { Location = new Point(62, 52), Width = 55, Minimum = 0, Maximum = 999, Value = 1 };
+            nudHours = new NumericUpDown { AccessibleName = "Hours", Location = new Point(62, 52), Width = 55, Minimum = 0, Maximum = 999, Value = 1 };
             var lblH = new Label { Text = "h", Location = new Point(120, 55), AutoSize = true };
-            nudMinutes = new NumericUpDown { Location = new Point(140, 52), Width = 55, Minimum = 0, Maximum = 59, Value = 0 };
+            nudMinutes = new NumericUpDown { AccessibleName = "Minutes", Location = new Point(140, 52), Width = 55, Minimum = 0, Maximum = 59, Value = 0 };
             var lblM = new Label { Text = "min", Location = new Point(198, 55), AutoSize = true };
             grpTime.Controls.AddRange(new Control[] { rbUnlimited, rbDuration, nudHours, lblH, nudMinutes, lblM });
             rbDuration.CheckedChanged += delegate { UpdateUi(); };
 
-            // --- Screen ---
+            // Screen
             var grpScreen = new GroupBox { Text = "Screen", Location = new Point(12, 108), Size = new Size(316, 104) };
             rbScreenTimeout = new RadioButton { Text = "Turn off after normal time-out", Location = new Point(12, 22), AutoSize = true, Checked = true };
             rbScreenOffNow = new RadioButton { Text = "Turn off now", Location = new Point(12, 48), AutoSize = true };
             rbScreenOn = new RadioButton { Text = "Keep screen on", Location = new Point(12, 74), AutoSize = true };
             grpScreen.Controls.AddRange(new Control[] { rbScreenTimeout, rbScreenOffNow, rbScreenOn });
 
-            // --- Start/Stop + status ---
+            // Start/Stop + status
             btnStartStop = new Button { Text = "Start", Location = new Point(12, 222), Size = new Size(316, 34) };
             btnStartStop.Click += delegate { if (active) StopAwake(); else StartAwake(); };
             lblStatus = new Label { Location = new Point(12, 266), Size = new Size(316, 50) };
@@ -96,7 +96,7 @@ namespace StayAwake
             tick = new Timer { Interval = 1000 };
             tick.Tick += OnTick;
 
-            // --- Tray ---
+            // Tray
             var menu = new ContextMenuStrip();
             trayStartStop = new ToolStripMenuItem("Start", null, delegate { if (active) StopAwake(); else StartAwake(); });
             menu.Items.Add(new ToolStripMenuItem("Show window", null, delegate { ShowFromTray(); }));

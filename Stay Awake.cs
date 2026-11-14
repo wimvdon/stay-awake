@@ -104,7 +104,7 @@ namespace StayAwake
             menu.Items.Add(new ToolStripSeparator());
             menu.Items.Add(new ToolStripMenuItem("Exit", null, delegate { reallyExit = true; Close(); }));
 
-            tray = new NotifyIcon { Icon = trayIdle, Text = "Stay Awake - idle", Visible = true, ContextMenuStrip = menu };
+            tray = new NotifyIcon { Icon = trayIdle, Text = "Stay Awake: idle", Visible = true, ContextMenuStrip = menu };
             tray.DoubleClick += delegate { ShowFromTray(); };
 
             Resize += delegate { if (WindowState == FormWindowState.Minimized) Hide(); };
@@ -119,7 +119,7 @@ namespace StayAwake
                 var span = new TimeSpan((int)nudHours.Value, (int)nudMinutes.Value, 0);
                 if (span.TotalMinutes < 1)
                 {
-                    MessageBox.Show(this, "Please choose a duration of at least 1 minute.", "Stay Awake",
+                    MessageBox.Show(this, "Choose a duration of at least 1 minute.", "Stay Awake",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
@@ -160,7 +160,7 @@ namespace StayAwake
             if (endTime.HasValue && DateTime.Now >= endTime.Value)
             {
                 StopAwake();
-                tray.ShowBalloonTip(3000, "Stay Awake", "Time is up - normal power settings restored.", ToolTipIcon.Info);
+                tray.ShowBalloonTip(3000, "Stay Awake", "Time is up. Normal power settings are back.", ToolTipIcon.Info);
                 return;
             }
             ApplyExecutionState();
@@ -184,7 +184,7 @@ namespace StayAwake
             string text;
             if (!active)
             {
-                text = "Idle - normal power settings apply.";
+                text = "Idle. Normal power settings apply.";
                 lblStatus.ForeColor = Color.DimGray;
             }
             else
@@ -201,15 +201,15 @@ namespace StayAwake
                 }
                 else
                 {
-                    text = what + ".\nUnlimited - until you press Stop.";
+                    text = what + ".\nRuns until you press Stop.";
                 }
                 lblStatus.ForeColor = Color.FromArgb(0, 120, 70);
             }
             lblStatus.Text = text;
 
             string tip = active
-                ? (endTime.HasValue ? "Stay Awake - active until " + endTime.Value.ToString("t") : "Stay Awake - active (unlimited)")
-                : "Stay Awake - idle";
+                ? (endTime.HasValue ? "Stay Awake: active until " + endTime.Value.ToString("t") : "Stay Awake: active (unlimited)")
+                : "Stay Awake: idle";
             tray.Text = tip.Length > 63 ? tip.Substring(0, 63) : tip;
         }
 
